@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>梅花易数起卦</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8b4513">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="梅花易数">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+
+        :root {
+            --bg: #fdf8f0;
+            --card-bg: #fffef9;
+            --text: #3d2b1f;
+            --text-light: #7a6a5c;
+            --primary: #8b4513;
+            --primary-hover: #6b3410;
+            --accent: #c9a96e;
+            --accent-light: #f0e6d2;
+            --border: #d4c5b2;
+            --error: #c0392b;
+            --shadow: 0 2px 16px rgba(61, 43, 31, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: "Noto Serif SC", "楷体", "KaiTi", "宋体", "SimSun", serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container { width: 100%; max-width: 640px; flex: 1; }
+
+        header { text-align: center; padding: 36px 0 20px; }
+        header h1 { font-size: 2.4em; color: var(--primary); letter-spacing: 0.15em; font-weight: 700; }
+        .subtitle { margin-top: 8px; color: var(--text-light); font-size: 0.95em; letter-spacing: 0.1em; }
+
+        .btn-group { display: flex; gap: 16px; justify-content: center; margin-bottom: 28px; flex-wrap: wrap; }
+
+        .btn-primary {
+            background: var(--primary); color: #fff; border: none;
+            padding: 12px 36px; font-size: 1.1em; font-family: inherit;
+            letter-spacing: 0.08em; border-radius: 6px; cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary:active { transform: scale(0.97); }
+
+        .btn-secondary {
+            background: transparent; color: var(--text-light);
+            border: 1px solid var(--border); padding: 12px 36px;
+            font-size: 1.1em; font-family: inherit; letter-spacing: 0.08em;
+            border-radius: 6px; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-secondary:hover { background: var(--accent-light); }
+
+        .result-area {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 10px; padding: 28px 24px;
+            box-shadow: var(--shadow); min-height: 200px; line-height: 1.9;
+        }
+
+        .placeholder { text-align: center; color: var(--text-light); padding: 60px 0; }
+        .placeholder p { font-size: 1.05em; letter-spacing: 0.06em; }
+
+        .gua-icon {
+            font-family: "Courier New", "SimHei", monospace;
+            font-size: 1.3em; line-height: 1.5; text-align: center;
+            background: var(--accent-light); border-radius: 8px;
+            padding: 16px; margin-bottom: 20px; letter-spacing: 0.05em;
+        }
+
+        .gua-name { text-align: center; font-size: 1.2em; color: var(--primary); font-weight: 700; margin-bottom: 8px; }
+
+        .gua-section { margin-bottom: 24px; }
+        .gua-section h3 { font-size: 1.3em; color: var(--primary); border-left: 4px solid var(--accent); padding-left: 12px; margin-bottom: 10px; }
+
+        .gua-meta { display: inline-block; background: var(--primary); color: #fff; padding: 2px 14px; border-radius: 20px; font-size: 0.85em; margin-bottom: 14px; letter-spacing: 0.05em; }
+
+        .gua-block { margin-bottom: 12px; }
+        .gua-block .label { color: var(--primary); font-weight: 700; }
+        .gua-block .content { color: var(--text); margin-left: 4px; }
+
+        .yao-list { list-style: none; padding: 0; }
+        .yao-list li { padding: 6px 0 6px 16px; border-left: 2px solid var(--accent-light); margin-bottom: 6px; }
+        .yao-list .yao-name { color: var(--primary); font-weight: 700; }
+
+        .jiyu { margin-top: 16px; padding: 14px 18px; background: linear-gradient(135deg, var(--accent-light), #fdf3e0); border-radius: 8px; font-style: italic; color: var(--primary); letter-spacing: 0.04em; }
+
+        .divider { text-align: center; margin: 24px 0; color: var(--accent); font-size: 0.9em; letter-spacing: 0.2em; }
+
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(61, 43, 31, 0.45); z-index: 100;
+            justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-card {
+            background: var(--card-bg); border-radius: 12px;
+            padding: 32px 28px; width: 90%; max-width: 380px;
+            box-shadow: 0 8px 40px rgba(61, 43, 31, 0.2);
+        }
+        .modal-card h2 { text-align: center; color: var(--primary); margin-bottom: 20px; letter-spacing: 0.1em; }
+
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; margin-bottom: 4px; color: var(--text-light); font-size: 0.9em; }
+        .input-group input {
+            width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+            border-radius: 6px; font-size: 1em; font-family: inherit;
+            background: var(--bg); color: var(--text); transition: border-color 0.2s;
+        }
+        .input-group input:focus { outline: none; border-color: var(--accent); }
+
+        .modal-btns { display: flex; gap: 12px; margin-top: 20px; justify-content: center; }
+        .error-msg { color: var(--error); text-align: center; margin-top: 10px; font-size: 0.9em; min-height: 20px; }
+
+        footer { text-align: center; padding: 20px; color: var(--text-light); font-size: 0.8em; letter-spacing: 0.08em; }
+
+        @media (max-width: 480px) {
+            header h1 { font-size: 1.8em; }
+            .btn-primary, .btn-secondary { padding: 10px 24px; font-size: 1em; }
+            .result-area { padding: 18px 14px; }
+            .gua-icon { font-size: 1.1em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>梅花易数起卦</h1>
+            <p class="subtitle">诚心默念所问之事，然后起卦</p>
+        </header>
+
+        <div class="btn-group">
+            <button id="btn-random" class="btn-primary">随机起卦</button>
+            <button id="btn-num" class="btn-primary">数字起卦</button>
+        </div>
+
+        <div id="result" class="result-area">
+            <div class="placeholder"><p>请选择起卦方式</p></div>
+        </div>
+    </div>
+
+    <!-- 数字起卦弹窗 -->
+    <div id="modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2>输入三个数字</h2>
+            <div class="input-group">
+                <label for="num-up">上卦数字</label>
+                <input type="number" id="num-up" placeholder="请输入正整数" min="1">
+            </div>
+            <div class="input-group">
+                <label for="num-down">下卦数字</label>
+                <input type="number" id="num-down" placeholder="请输入正整数" min="1">
+            </div>
+            <div class="input-group">
+                <label for="num-change">变爻数字</label>
+                <input type="number" id="num-change" placeholder="请输入正整数" min="1">
+            </div>
+            <div class="modal-btns">
+                <button id="btn-confirm" class="btn-primary">起卦</button>
+                <button id="btn-cancel" class="btn-secondary">取消</button>
+            </div>
+            <p id="modal-error" class="error-msg"></p>
+        </div>
+    </div>
+
+    <footer><p>梅花易数 · 六十四卦</p></footer>
+
+    <script src="yijing_data.js"></script>
+    <script>
+    // ========== 核心逻辑 ==========
+    const YANG = "———";
+    const YIN = "— —";
+    const LIANGYI = [YANG, YIN];
+    const BAGUA_NAMES = ["乾", "兑", "离", "震", "巽", "坎", "艮", "坤"];
+
+    function buildBagua() {
+        const guaList = [];
+        for (const xia of LIANGYI) {
+            for (const zhong of LIANGYI) {
+                for (const shang of LIANGYI) {
+                    guaList.push([shang, zhong, xia].join("\n"));
+                }
+            }
+        }
+        return guaList;
+    }
+
+    function buildLiushisigua(bagua) {
+        const result = [];
+        for (const shang of bagua) {
+            for (const xia of bagua) {
+                result.push(shang + "\n" + xia);
+            }
+        }
+        return result;
+    }
+
+    function buildNameMap() {
+        const map = new Map();
+        for (const [name, data] of Object.entries(YIJING_DATA)) {
+            map.set(data["上卦"] + "|" + data["下卦"], name);
+        }
+        return map;
+    }
+
+    function buildOrderedNames(nameMap) {
+        const names = [];
+        for (const shang of BAGUA_NAMES) {
+            for (const xia of BAGUA_NAMES) {
+                names.push(nameMap.get(shang + "|" + xia));
+            }
+        }
+        return names;
+    }
+
+    const BAGUA = buildBagua();
+    const LIUSHISIGUA = buildLiushisigua(BAGUA);
+    const NAME_MAP = buildNameMap();
+    const ORDERED_NAMES = buildOrderedNames(NAME_MAP);
+
+    function getGuaData(guaName) {
+        const data = YIJING_DATA[guaName];
+        const tci = data["卦辞"];
+        return {
+            name: guaName,
+            jixiong: data["吉凶"],
+            guaci: {
+                yuanwen: tci["原文"],
+                yiwen: tci["译文"],
+                zhushi: tci["注释"] || null
+            },
+            yaoci: data["爻辞"].map(y => ({
+                yaowei: y["爻位"],
+                ci: y["辞"],
+                yiwen: y["译文"]
+            })),
+            jiyu: data["寄语"] || ""
+        };
+    }
+
+    function numGua(a, b, c) {
+        const x = a % 8 - 1;
+        const y = b % 8 - 1;
+        const z = (c - 1) % 6;
+
+        const bengua = BAGUA[x] + "\n" + BAGUA[y];
+        const guaS = BAGUA[x].split("\n");
+        const guaX = BAGUA[y].split("\n");
+
+        if (z < 3) {
+            const idx = 2 - z;
+            guaX[idx] = guaX[idx] === YANG ? YIN : YANG;
+        } else {
+            const idx = 5 - z;
+            guaS[idx] = guaS[idx] === YANG ? YIN : YANG;
+        }
+
+        const biangua = guaS.join("\n") + "\n" + guaX.join("\n");
+        return { bengua, biangua, dongyao: z + 1 };
+    }
+
+    // ========== DOM 交互 ==========
+    const resultArea = document.getElementById("result");
+    const modal = document.getElementById("modal");
+    const modalError = document.getElementById("modal-error");
+    const numUp = document.getElementById("num-up");
+    const numDown = document.getElementById("num-down");
+    const numChange = document.getElementById("num-change");
+
+    document.getElementById("btn-random").addEventListener("click", () => {
+        const idx = Math.floor(Math.random() * LIUSHISIGUA.length);
+        const icon = LIUSHISIGUA[idx];
+        const name = ORDERED_NAMES[idx];
+        render(icon, getGuaData(name));
+    });
+
+    document.getElementById("btn-num").addEventListener("click", () => {
+        modal.classList.add("active");
+        modalError.textContent = "";
+        numUp.value = numDown.value = numChange.value = "";
+        numUp.focus();
+    });
+
+    document.getElementById("btn-cancel").addEventListener("click", () => {
+        modal.classList.remove("active");
+    });
+
+    document.getElementById("btn-confirm").addEventListener("click", doNumGua);
+
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) modal.classList.remove("active");
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") modal.classList.remove("active");
+        if (e.key === "Enter" && modal.classList.contains("active")) doNumGua();
+    });
+
+    function doNumGua() {
+        const up = numUp.value.trim();
+        const down = numDown.value.trim();
+        const change = numChange.value.trim();
+        if (!up || !down || !change) {
+            modalError.textContent = "请填写三个数字";
+            return;
+        }
+        modal.classList.remove("active");
+
+        const result = numGua(parseInt(up), parseInt(down), parseInt(change));
+
+        const benIdx = LIUSHISIGUA.indexOf(result.bengua);
+        const benName = ORDERED_NAMES[benIdx];
+
+        const bianIdx = LIUSHISIGUA.indexOf(result.biangua);
+        const bianName = ORDERED_NAMES[bianIdx];
+
+        const dongyaoText = benName + " 第" + result.dongyao + "爻动";
+
+        resultArea.innerHTML = `
+            <div class="gua-section">
+                <h3>本卦（${dongyaoText}）</h3>
+                <div class="gua-icon">${escapeHtml(result.bengua).replace(/\n/g, "<br>")}</div>
+            </div>
+            ${renderGuaBlock(getGuaData(benName))}
+            <div class="divider">—— ◆ 变 卦 ◆ ——</div>
+            <div class="gua-section">
+                <h3>变卦</h3>
+                <div class="gua-icon">${escapeHtml(result.biangua).replace(/\n/g, "<br>")}</div>
+            </div>
+            ${renderGuaBlock(getGuaData(bianName))}
+        `;
+    }
+
+    // ========== 渲染函数 ==========
+    function escapeHtml(str) {
+        const div = document.createElement("div");
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function render(icon, gua) {
+        resultArea.innerHTML = `
+            <div class="gua-icon">${escapeHtml(icon).replace(/\n/g, "<br>")}</div>
+            ${renderGuaBlock(gua)}
+        `;
+    }
+
+    function renderGuaBlock(gua) {
+        let html = "";
+        html += `<div class="gua-name">【${escapeHtml(gua.name)}】</div>`;
+        html += `<span class="gua-meta">${escapeHtml(gua.jixiong)}</span>`;
+
+        html += `<div class="gua-block"><span class="label">卦辞</span></div>`;
+        html += `<div class="gua-block"><span class="content">${escapeHtml(gua.guaci.yuanwen)}</span></div>`;
+        html += `<div class="gua-block"><span class="content" style="color:var(--text-light)">${escapeHtml(gua.guaci.yiwen)}</span></div>`;
+        if (gua.guaci.zhushi) {
+            html += `<div class="gua-block"><span class="content" style="font-size:0.9em;color:var(--text-light)">${escapeHtml(gua.guaci.zhushi)}</span></div>`;
+        }
+
+        html += `<div class="gua-block" style="margin-top:8px;"><span class="label">爻辞</span></div>`;
+        html += '<ul class="yao-list">';
+        for (const yao of gua.yaoci) {
+            html += `<li><span class="yao-name">${escapeHtml(yao.yaowei)}</span>：${escapeHtml(yao.ci)} <span style="color:var(--text-light);font-size:0.92em;">（${escapeHtml(yao.yiwen)}）</span></li>`;
+        }
+        html += "</ul>";
+
+        if (gua.jiyu) {
+            html += `<div class="jiyu">寄语：${escapeHtml(gua.jiyu)}</div>`;
+        }
+        return html;
+    }
+    </script>
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("sw.js");
+        }
+    </script>
+</body>
+</html>
