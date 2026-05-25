@@ -1,4 +1,4 @@
-const CACHE = "meihua-v1";
+const CACHE = "meihua-v2";
 const URLS = [
     "./index.html",
     "./yijing_data.js",
