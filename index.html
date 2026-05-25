@@ -253,8 +253,8 @@
     }
 
     function numGua(a, b, c) {
-        const x = a % 8 - 1;
-        const y = b % 8 - 1;
+        const x = (a - 1) % 8;
+        const y = (b - 1) % 8;
         const z = (c - 1) % 6;
 
         const bengua = BAGUA[x] + "\n" + BAGUA[y];
